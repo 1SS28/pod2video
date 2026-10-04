@@ -94,11 +94,23 @@ def pick_episode(episodes: list[Episode], selector: str) -> Episode:
     return matches[0]
 
 
+MEDIA_SUFFIXES = {".mp3", ".m4a", ".mp4", ".aac", ".wav", ".ogg", ".oga", ".opus", ".flac", ".jpg", ".jpeg", ".png", ".webp"}
+
+
+def _suffix(url: str) -> str:
+    """File extension for a media URL, including ones like `ccdn.php?filename=/eps/x.mp3`."""
+    parsed = urlparse(url)
+    candidates = [parsed.path, *(v for part in parsed.query.split("&") for v in part.split("=")[1:])]
+    for candidate in candidates:
+        suffix = Path(candidate).suffix.lower()
+        if suffix in MEDIA_SUFFIXES:
+            return suffix
+    return ".bin"  # ffmpeg detects the format from the content
+
+
 def download(url: str, cache_dir: Path, *, progress: bool = True) -> Path:
     """Download once into the cache; later runs reuse the file."""
-    suffix = Path(urlparse(url).path).suffix.lower() or ".mp3"
-    if len(suffix) > 5:
-        suffix = ".bin"
+    suffix = _suffix(url)
     dest = cache_dir / "downloads" / f"{hashlib.sha1(url.encode()).hexdigest()[:16]}{suffix}"
     if dest.exists() and dest.stat().st_size > 0:
         return dest

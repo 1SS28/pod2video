@@ -6,7 +6,7 @@ from types import SimpleNamespace
 import httpx
 
 from core.llm import LLM
-from pod2video.feed import parse_feed, pick_episode
+from pod2video.feed import _suffix, parse_feed, pick_episode
 from pod2video.transcribe import AssemblyAI, Deepgram
 
 
@@ -112,3 +112,9 @@ def test_feed_parsing_and_episode_selection():
     assert pick_episode(episodes, "2").guid == "ep1"
     assert pick_episode(episodes, "origins").guid == "ep1"
     assert pick_episode(episodes, "ep2").title == "Episode 2: Shipping"
+
+
+def test_download_suffix_handles_redirector_urls():
+    assert _suffix("https://cdn.example.com/ep/1.mp3?x=1") == ".mp3"
+    assert _suffix("https://hub.hackerpublicradio.org/ccdn.php?filename=/eps/hpr4735/hpr4735.mp3") == ".mp3"
+    assert _suffix("https://example.com/stream") == ".bin"
