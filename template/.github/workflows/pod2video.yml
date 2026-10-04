@@ -1,0 +1,62 @@
+# Clips for every new episode, reviewed in issues:
+#   1. Every day this checks your feed. A new episode gets an issue with free previews.
+#   2. You reply `/render 1 4` on the issue; the chosen clips are rendered with Magic Hour.
+# Setup: README.md in this repo.
+name: pod2video
+
+on:
+  schedule:
+    - cron: "17 8 * * *" # daily, 08:17 UTC
+  workflow_dispatch:
+    inputs:
+      episode:
+        description: "Episode: latest, a number (1 = latest), or part of the title"
+        default: latest
+      force:
+        description: Preview again even if the episode already has an issue
+        type: boolean
+        default: false
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write # draft releases hold the previews and clips
+  issues: write
+
+concurrency:
+  group: pod2video-${{ github.event.issue.number || 'preview' }}
+  cancel-in-progress: false
+
+jobs:
+  preview:
+    if: github.event_name != 'issue_comment'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: 1SS28/pod2video@v1
+        with:
+          command: preview
+          episode: ${{ inputs.episode || 'latest' }}
+          force: ${{ inputs.force || false }}
+          magic-hour-api-key: ${{ secrets.MAGIC_HOUR_API_KEY }}
+          transcription-api-key: ${{ secrets.TRANSCRIPTION_API_KEY }}
+          llm-api-key: ${{ secrets.LLM_API_KEY }}
+
+  render:
+    # Only people with write access can spend your credits.
+    if: >-
+      github.event_name == 'issue_comment' &&
+      startsWith(github.event.comment.body, '/render') &&
+      contains(github.event.issue.labels.*.name, 'pod2video') &&
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - uses: 1SS28/pod2video@v1
+        with:
+          command: render
+          magic-hour-api-key: ${{ secrets.MAGIC_HOUR_API_KEY }}
+          transcription-api-key: ${{ secrets.TRANSCRIPTION_API_KEY }}
+          llm-api-key: ${{ secrets.LLM_API_KEY }}

@@ -1,0 +1,30 @@
+# Your show. Paths are relative to this file.
+feed: https://example.com/podcast/feed.xml
+podcast_name: My Podcast # optional; defaults to the feed's title
+logo: feed # the podcast artwork from the feed; or a path like hosts/logo.png; or delete this line
+
+hosts:
+  - name: Alice
+    photo: hosts/alice.jpg # a clear, front-facing photo (with Alice's consent)
+  - name: Bob
+    description: tall, short beard, green beanie # no photo: a cartoon avatar is made from this
+
+avatar: photo # photo: animate the photos as they are; cartoon: turn them into cartoons first (~50 credits each, once)
+
+clips: 3 # clips suggested for each episode
+candidates: 6 # free previews for each episode
+min_len: 25 # seconds
+max_len: 45
+layout: auto # speaker-cut for 2+ hosts (cheapest), split, or single
+style: bold # captions: bold, clean, minimal
+generation_mode: prompted # prompted (20 credits/s) or realistic (48 credits/s, best likeness)
+
+plan: auto # read from your Magic Hour account; or e.g. creator-annual (see `pod2video plans`)
+max_credits_per_run: 5000 # a render that would cost more is refused
+
+# Optional: if your speaker labels are stable between episodes, pin them here.
+# speaker_map: {A: Alice, B: Bob}
+
+transcription_provider: assemblyai # or deepgram
+llm_model: claude-opus-5-5
+llm_effort: high

@@ -1,0 +1,89 @@
+name: pod2video
+description: Turn podcast episodes into vertical clips with Magic Hour Talking Photo, reviewed through issues.
+author: pod2video contributors
+branding:
+  icon: video
+  color: yellow
+
+inputs:
+  command:
+    description: "preview (find a new episode, post free previews in an issue) or render (handle a /render comment)"
+    required: true
+  config:
+    description: Path to the show config
+    default: pod2video.yml
+  episode:
+    description: "preview only: latest, a number (1 = latest), or part of the title"
+    default: latest
+  force:
+    description: "preview only: preview again even if the episode already has an issue"
+    default: "false"
+  magic-hour-api-key:
+    description: Magic Hour API key (pass a secret)
+    required: true
+  transcription-api-key:
+    description: AssemblyAI or Deepgram API key (pass a secret)
+    required: true
+  llm-api-key:
+    description: Anthropic or OpenAI API key (pass a secret)
+    required: true
+  python-version:
+    description: Python to run pod2video with
+    default: "3.12"
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v7
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install ffmpeg (with libass for captions) and fonts
+      shell: bash
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -y -qq --no-install-recommends ffmpeg fonts-liberation fonts-dejavu-core
+
+    - name: Install pod2video
+      shell: bash
+      run: pip install --quiet "${{ github.action_path }}"
+
+    # Transcripts, avatars, face checks, speaker maps and finished renders carry over between runs,
+    # so nothing is paid for twice. Episode audio is re-downloaded instead (free, and large).
+    - name: Restore pod2video cache
+      uses: actions/cache@v6
+      with:
+        path: |
+          ~/.cache/pod2video
+          !~/.cache/pod2video/downloads
+          out/*/clip_*/*.mp4
+          out/*/clip_*/*.json
+        key: pod2video-${{ github.run_id }}-${{ github.run_attempt }}
+        restore-keys: pod2video-
+
+    - name: Run pod2video ${{ inputs.command }}
+      shell: bash
+      env:
+        MAGIC_HOUR_API_KEY: ${{ inputs.magic-hour-api-key }}
+        TRANSCRIPTION_API_KEY: ${{ inputs.transcription-api-key }}
+        LLM_API_KEY: ${{ inputs.llm-api-key }}
+        GITHUB_TOKEN: ${{ github.token }}
+        POD2VIDEO_COMMAND: ${{ inputs.command }}
+        POD2VIDEO_CONFIG: ${{ inputs.config }}
+        POD2VIDEO_EPISODE: ${{ inputs.episode }}
+        POD2VIDEO_FORCE: ${{ inputs.force }}
+      run: |
+        case "$POD2VIDEO_COMMAND" in
+          preview)
+            args=(--config "$POD2VIDEO_CONFIG" --episode "$POD2VIDEO_EPISODE")
+            [ "$POD2VIDEO_FORCE" = "true" ] && args+=(--force)
+            pod2video actions preview "${args[@]}"
+            ;;
+          render)
+            pod2video actions render --config "$POD2VIDEO_CONFIG"
+            ;;
+          *)
+            echo "::error::command must be preview or render, got '$POD2VIDEO_COMMAND'"
+            exit 1
+            ;;
+        esac
