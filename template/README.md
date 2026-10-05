@@ -28,7 +28,7 @@ This repository turns each new episode of your podcast into short vertical clips
 
 ## Cost
 
-You pay Magic Hour, your transcription provider and your LLM provider directly with your own keys. With the defaults, a 40-second clip with two hosts is about 820 Magic Hour credits: ~$1.30 on the Creator plan billed monthly, ~$0.82 billed annually. Transcription and moment selection add roughly $0.30–$0.50 per episode-hour. GitHub Actions is free for this: private repos get 2,000 minutes a month, and an episode takes roughly 10–15.
+You pay Magic Hour, your transcription provider and your LLM provider directly with your own keys. With the defaults, clips run 15–30 seconds. A typical 23-second clip with two hosts is about 470 Magic Hour credits: ~$0.75 on the Creator plan billed monthly, ~$0.47 billed annually. Transcription and moment selection add roughly $0.30–$0.50 per episode-hour. GitHub Actions is free for this: private repos get 2,000 minutes a month, and an episode takes roughly 10–15.
 
 ## Updating
 

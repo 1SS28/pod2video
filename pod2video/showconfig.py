@@ -36,8 +36,8 @@ class ShowConfig(BaseModel):
     avatar: Literal["photo", "cartoon"] = "photo"
     clips: int = Field(default=3, ge=1, le=20)  # suggested picks per episode
     candidates: int | None = Field(default=None, ge=1, le=20)  # previews per episode (default 2 x clips)
-    min_len: float = 25
-    max_len: float = 45
+    min_len: float = 15
+    max_len: float = 30
     layout: Literal["auto", "split", "speaker-cut", "single"] = "auto"
     style: str = "bold"
     generation_mode: Literal["prompted", "realistic"] = "prompted"

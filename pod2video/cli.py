@@ -85,8 +85,8 @@ def run(
     clips: int = typer.Option(3, "--clips", min=1, max=20, help="Clips to render with Magic Hour."),
     candidates: Optional[int] = typer.Option(None, "--candidates", min=1, max=20, help="Moments to select and preview (default: 2 x --clips)."),
     pick: Optional[str] = typer.Option(None, "--pick", help="Candidate numbers to render, e.g. 1,3,4 (default: ask, or the top --clips)."),
-    min_len: float = typer.Option(25, "--min-len", help="Minimum clip length in seconds."),
-    max_len: float = typer.Option(45, "--max-len", help="Maximum clip length in seconds (prompted mode allows up to 45)."),
+    min_len: float = typer.Option(15, "--min-len", help="Minimum clip length in seconds."),
+    max_len: float = typer.Option(30, "--max-len", help="Maximum clip length in seconds (prompted mode allows up to 45)."),
     layout: LayoutChoice = typer.Option(LayoutChoice.auto, "--layout", help="speaker-cut (default for 2+ hosts; only the speaker is animated), split (all hosts on screen, costs more), or single."),
     style: str = typer.Option("bold", "--style", help="Caption style preset: bold, clean, minimal."),
     out: Path = typer.Option(Path("out"), "--out", help="Output directory."),
@@ -162,7 +162,7 @@ def run(
 @app.command()
 def plans(
     clips_per_month: int = typer.Option(13, "--clips-per-month", help="Clips you expect to render per month (13 = weekly show, 3 clips each)."),
-    clip_length: float = typer.Option(40, "--clip-length", help="Average clip length in seconds."),
+    clip_length: float = typer.Option(23, "--clip-length", help="Average clip length in seconds."),
     hosts: int = typer.Option(2, "--hosts", help="Hosts per show."),
     layout: LayoutChoice = typer.Option(LayoutChoice.auto, "--layout"),
     generation_mode: ModeChoice = typer.Option(ModeChoice.prompted, "--generation-mode"),

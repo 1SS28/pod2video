@@ -61,8 +61,8 @@ class RunOptions(BaseModel):
     clips: int = Field(default=3, ge=1, le=20)  # clips to render with Magic Hour
     candidates: int | None = Field(default=None, ge=1, le=20)  # moments to select and preview; default 2 x clips
     pick: list[int] = Field(default_factory=list)  # candidate numbers to render; default the top `clips`
-    min_len: float = Field(default=25.0, gt=0)
-    max_len: float = Field(default=45.0, gt=0)
+    min_len: float = Field(default=15.0, gt=0)
+    max_len: float = Field(default=30.0, gt=0)
     layout: Layout = "auto"
     style: str = "bold"
     dry_run: bool = False

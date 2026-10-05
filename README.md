@@ -6,9 +6,9 @@ Turn an audio-only podcast into short vertical video clips. The host who is talk
 <!-- TODO: after your first real run: python examples/make_demo_gif.py out/<episode>/clip_01_*.mp4 docs/demo.gif -->
 
 - **Input:** an RSS feed (or a local audio file), plus one photo per host, or a one-line description for a cartoon avatar.
-- **Output:** vertical 9:16 clips (25–45 s) of the best moments in the episode.
+- **Output:** vertical 9:16 clips (15–30 s) of the best moments in the episode.
 - **The audio is never altered.** Only the images are animated. Each clip plays the original mixed audio.
-- **Cheap by design:** about **$0.80–$1.30 per clip** on Magic Hour's Creator plan (see [Cost](#cost)).
+- **Cheap by design:** about **$0.50–$0.75 per clip** on Magic Hour's Creator plan (see [Cost](#cost)).
 - **Bring your own keys:** Magic Hour, a transcription provider (AssemblyAI or Deepgram), and an LLM (Anthropic or OpenAI).
 - **A worked example of the Magic Hour API:** see [How it uses the Magic Hour API](#how-it-uses-the-magic-hour-api) for the endpoints, their limits and costs, and the patterns that keep spend down.
 
@@ -65,11 +65,11 @@ Step 2 reuses the transcript and the moments from step 1, so you only pay for Ta
 
 ### Layouts
 
-| `--layout` | What you get | Billed per 40 s clip, 2 hosts |
+| `--layout` | What you get | Billed per 23 s clip, 2 hosts |
 | --- | --- | --- |
-| `speaker-cut` (default for 2+ hosts) | Whoever is talking, full width; cuts between hosts | ~41 s |
-| `split` | All hosts stacked, each animated for the whole clip | 80 s |
-| `single` (default for 1 host) | One host | 40 s |
+| `speaker-cut` (default for 2+ hosts) | Whoever is talking, full width; cuts between hosts | ~24 s |
+| `split` | All hosts stacked, each animated for the whole clip | 46 s |
+| `single` (default for 1 host) | One host | 23 s |
 
 ### Avatars
 
@@ -81,15 +81,15 @@ Run `pod2video avatars --host ...` to make avatars up front so that `--preview` 
 
 ## Cost
 
-Talking Photo is billed per second of output: **20 credits/s in `prompted` mode** (the default, up to 45 s per job) or **48 credits/s in `realistic` mode** (`--generation-mode realistic`, best likeness). These rates are from Magic Hour's [model pricing](https://docs.magichour.ai/api-reference/models). Per 40 s two-host clip:
+Talking Photo is billed per second of output: **20 credits/s in `prompted` mode** (the default, up to 45 s per job) or **48 credits/s in `realistic` mode** (`--generation-mode realistic`, best likeness). These rates are from Magic Hour's [model pricing](https://docs.magichour.ai/api-reference/models). Clips default to 15–30 s, because short clips hold attention better and cost proportionally less. Per typical 23 s two-host clip:
 
 | Setup | Credits | Creator monthly ($19) | Creator annual ($12/mo) |
 | --- | --- | --- | --- |
-| speaker-cut, prompted (default) | ~820 | $1.30 | $0.82 |
-| speaker-cut, realistic | ~1,980 | $3.13 | $1.98 |
-| split, realistic (every host, whole clip) | 3,840 | $6.08 | $3.84 |
+| speaker-cut, prompted (default) | ~470 | $0.75 | $0.47 |
+| speaker-cut, realistic | ~1,140 | $1.80 | $1.14 |
+| split, realistic (every host, whole clip) | 2,210 | $3.50 | $2.21 |
 
-**Which plan?** `pod2video plans` compares every option for your volume. A weekly show with 3 clips per episode (~10,700 credits a month) fits **Creator**: $19/mo, or $12/mo billed annually. Pro and Business add credits and concurrency, but not Talking Photo quality, which is capped at 720p on every paid plan. Credit packs work without a plan but render at the lowest resolution. Subscription credits never expire. pod2video reads your plan from your API key (`MAGIC_HOUR_PLAN=auto`) to price every report. Override it with `--plan`.
+**Which plan?** `pod2video plans` compares every option for your volume. A weekly show with 3 clips per episode (~6,200 credits a month) fits **Creator**: $19/mo, or $12/mo billed annually. Pro and Business add credits and concurrency, but not Talking Photo quality, which is capped at 720p on every paid plan. Credit packs work without a plan but render at the lowest resolution. Subscription credits never expire. pod2video reads your plan from your API key (`MAGIC_HOUR_PLAN=auto`) to price every report. Override it with `--plan`.
 
 Other costs per episode-hour: transcription about $0.23 (AssemblyAI) or $0.26 (Deepgram), and moment selection about $0.10–$0.30 with Claude Opus.
 
@@ -112,7 +112,7 @@ All the Magic Hour calls are in [core/magichour.py](core/magichour.py) (plain RE
 
 **Patterns worth copying:**
 
-- **Spend only on what's on screen.** Talking Photo bills per second of output, so pod2video animates only the host who is visible and joins each host's on-screen moments into one job per clip, with short silent gaps that are trimmed back out. Two hosts cost about the same as one: roughly 41 billed seconds per 40 s clip instead of 80.
+- **Spend only on what's on screen.** Talking Photo bills per second of output, so pod2video animates only the host who is visible and joins each host's on-screen moments into one job per clip, with short silent gaps that are trimmed back out. Two hosts cost about the same as one: roughly 24 billed seconds per 23 s clip instead of 46.
 - **Free stand-ins before paid calls.** Previews use the real layout with still images, so people choose clips before any credits are spent.
 - **Cache by input hash.** Renders are keyed by the SHA-256 of their audio and image plus the settings, so a retry never pays twice.
 - **Log every credit.** Each job's estimated and final `credits_charged` is written to a JSONL ledger as it happens. That's where the cost numbers in this README come from.
@@ -123,7 +123,7 @@ All the Magic Hour calls are in [core/magichour.py](core/magichour.py) (plain RE
 --feed URL | --audio FILE          source (one of)
 --episode latest|N|text            N = 1 is the latest (see `pod2video episodes --feed URL`)
 --host "Name=photo.jpg" | "Name=desc:..."   repeat per host
---clips 3  --candidates 6  --pick 1,4,5  --min-len 25  --max-len 45
+--clips 3  --candidates 6  --pick 1,4,5  --min-len 15  --max-len 30
 --layout speaker-cut|split|single  --style bold|clean|minimal
 --preview  --dry-run  --yes
 --avatar photo|cartoon  --avatar-prompt TEXT

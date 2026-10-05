@@ -13,8 +13,8 @@ avatar: photo # photo: animate the photos as they are; cartoon: turn them into c
 
 clips: 3 # clips suggested for each episode
 candidates: 6 # free previews for each episode
-min_len: 25 # seconds
-max_len: 45
+min_len: 15 # seconds; short clips hold attention and cost less
+max_len: 30
 layout: auto # speaker-cut for 2+ hosts (cheapest), split, or single
 style: bold # captions: bold, clean, minimal
 generation_mode: prompted # prompted (20 credits/s) or realistic (48 credits/s, best likeness)
