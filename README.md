@@ -4,7 +4,7 @@ Turn an audio-only podcast into short vertical video clips. The host who is talk
 
 ![Before: the episode's audio. After: a captioned 9:16 clip of a cartoon avatar lip-syncing the speaker's real voice.](docs/demo.gif)
 
-*Real output: a 29 s clip from [Open Minds … from Creative Commons](https://creativecommons.org/tag/podcast/) (CC BY 4.0, used with the hosts' permission). The face is a cartoon avatar generated from a text description. 695 Magic Hour credits ($0.83). The full walkthrough, with what went wrong, is in [demo.md](demo.md).*
+*Real output: a 29 s clip from [Open Minds … from Creative Commons](https://creativecommons.org/tag/podcast/) (CC BY 4.0, used with the hosts' permission). The face is a cartoon avatar generated from a text description. 720 Magic Hour credits ($0.86). The full walkthrough, with what went wrong, is in [demo.md](demo.md).*
 
 - **Input:** an RSS feed (or a local audio file), plus one photo per host, or a one-line description for a cartoon avatar.
 - **Output:** vertical 9:16 clips (15–30 s) of the best moments in the episode.
@@ -94,15 +94,15 @@ Talking Photo is billed per second of output: **about 24 credits/s in `prompted`
 
 Other costs per episode-hour: transcription about $0.23 (AssemblyAI) or $0.26 (Deepgram), and moment selection about $0.10–$0.30 with Claude Opus.
 
-**Real run (2026-10-11):** one 28.9 s clip from a 25-minute episode, cartoon avatar, `prompted` mode, speaker-cut.
+**Real run (2026-10-11):** one 30 s clip from a 25-minute episode, cartoon avatar, `prompted` mode, speaker-cut.
 
 | | |
 | --- | --- |
-| Magic Hour, Talking Photo (1 job) | 695 credits = $0.83 at the usage-based Creator rate ($0.70 on Creator annual) |
+| Magic Hour, Talking Photo (1 job) | 720 credits = $0.86 at the usage-based Creator rate ($0.72 on Creator annual) |
 | Magic Hour, 2 cartoon avatars (one-time) | 100 credits = $0.12 |
-| Moment selection, Claude Opus 5.5, run twice | $0.16 |
+| Moment selection, Claude Opus 5.5, run three times | $0.24 |
 | Transcription, AssemblyAI, 25 min | ~$0.10 |
-| Time | transcribe ~1 min, select moments 20 s, Talking Photo 102 s, compose 6 s |
+| Time | transcribe ~1 min, select moments 20 s, Talking Photo 84 s, compose 6 s |
 
 Details and the terminal output are in [demo.md](demo.md).
 

@@ -4,7 +4,7 @@ This is a record of running pod2video on a real podcast episode, written so that
 
 **The episode:** "Dr. Beth Harris and Dr. Steven Zucker of Smarthistory" from *Open Minds … from Creative Commons* (25 minutes, licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)). The hosts gave permission for this demo. The faces in the clips are **cartoon avatars generated from a text description**, not photos, which pod2video supports for exactly this situation: when you don't have (or don't want to use) a real photo.
 
-**The result:** one finished 29-second clip for **695 Magic Hour credits ($0.83)**, plus 100 credits for the two avatars and about $0.16 of AI costs for picking the moments.
+**The result:** one finished 30-second clip for **720 Magic Hour credits ($0.86)**, plus 100 credits for the two avatars and about $0.24 of AI costs for picking the moments. Getting there took one wasted render (695 credits) because I mapped the voices to the wrong faces, which is the main lesson of this document.
 
 ![The finished clip](docs/demo.gif)
 
@@ -71,7 +71,9 @@ Read the sample lines and answer. Your answer is remembered for this podcast, so
 
 I skipped the question by passing `--speaker-map "A=Eric,B=Ony"`, guessing that A and B were the podcast's two hosts. They weren't. A was the host, but B and D were the two *guests*, and the second host barely spoke. Every preview was labelled with the wrong name. **Read the sample lines; don't guess.**
 
-It also meant the interesting people in this episode were the guests, not the hosts. So I re-ran it with Beth and Steven as the on-screen people and `--speaker-map "B=Beth,D=Steven"`. Whoever does the talking in the best moments is who you should put on screen.
+It also meant the interesting people in this episode were the guests, not the hosts. So I re-ran it with Beth and Steven as the on-screen people. Whoever does the talking in the best moments is who you should put on screen.
+
+Then I made the same mistake a second time: I guessed `B=Beth,D=Steven`, rendered a clip, and got Beth's face mouthing Steven's words. The sample line for B was "Beth's husband, Joe, bought her a microphone", which is obviously Steven *talking about* Beth. Reading it would have taken ten seconds and saved 695 credits. The correct map was `D=Beth,B=Steven`. **Answer the question from the sample lines. Don't guess, and don't let anyone else guess for you.**
 
 Re-running cost nothing extra for the transcription (it's saved), but the moment-picking ran again because the names changed: 8 cents.
 
@@ -112,20 +114,20 @@ That took about a minute and cost 100 credits (50 per person). It's a one-time c
 
 ## Step 3: render the clip you want
 
-Watch the previews, pick the one(s) you'd post, then run the same command with `--pick` and without `--preview`. I picked clip 1 and set a spending cap:
+Watch the previews, pick the one(s) you'd post, then run the same command with `--pick` and without `--preview`. I picked the clip "Why We Block Textbook Publishers" and set a spending cap:
 
 ```bash
 pod2video run --feed https://anchor.fm/s/4d70d828/podcast/rss --episode smarthistory \
   --host "Beth=desc:..." --host "Steven=desc:..." --speakers 4 \
-  --pick 1 --max-credits 700
+  --speaker-map "D=Beth,B=Steven" --pick 1 --max-credits 800
 ```
 
-`--max-credits 700` means: if this would cost more than 700 credits, stop and don't spend anything.
+`--max-credits 800` means: if this would cost more than 800 credits, stop and don't spend anything.
 
 Before spending, it shows the cost and asks:
 
 ```
-About to run 1 Talking Photo job(s): ~580 credits (~$0.70). Balance: 28,534 credits.
+About to run 1 Talking Photo job(s): ~720 credits (~$0.86). Balance: 27,839 credits.
 Spend these credits? [y/n]
 ```
 
@@ -134,19 +136,19 @@ Then:
 ```
   … clip 1 / Beth: queued
   … clip 1 / Beth: rendering
-  ✓ clip 1 / Beth: 695 credits, 102s
-  ✓ out/dr-beth-harris-and-dr-steven-zucker-of-smarthistory/clip_01_how-a-30-ipod-mic-started-smarthistory.mp4
+  ✓ clip 1 / Beth: 720 credits, 84s
+  ✓ out/dr-beth-harris-and-dr-steven-zucker-of-smarthistory/clip_01_why-we-block-textbook-publishers-from-ou.mp4
 
-Magic Hour: 695 credits ≈ $0.83 on Usage-based (Creator)
-Time: animate 102s, compose 6s (wall 114s)
-Same run on other plans: Business, annual $0.66, Creator, annual $0.69
+Magic Hour: 720 credits ≈ $0.86 on Usage-based (Creator)
+Time: animate 84s, compose 6s (wall 110s)
+Same run on other plans: Business, annual $0.68, Creator, annual $0.72
 ```
 
 Two minutes, and the finished clip is in the `out/` folder, ready to post.
 
 ### What I learned from the real bill
 
-The estimate said 580 credits; Magic Hour charged **695**. Magic Hour's docs list `prompted` mode at 20 credits per second, but the actual charge was 1 credit per video frame at 24 frames per second, which is 24 per second. pod2video now estimates with 24, so the estimates match the bill. Expect roughly **600–700 credits for a 25–30 second clip**, which is $0.70–$0.85 on a Creator plan.
+On the first (wrong-face) render the estimate said 580 credits; Magic Hour charged **695**. Magic Hour's docs list `prompted` mode at 20 credits per second, but the actual charge was 1 credit per video frame at 24 frames per second, which is 24 per second. pod2video now estimates with 24, so the estimates match the bill. Expect roughly **600–700 credits for a 25–30 second clip**, which is $0.70–$0.85 on a Creator plan.
 
 The output video from Magic Hour was 640×640 pixels, which pod2video scales up to fit the 1080×1920 vertical frame. It looks fine on a phone, which is where these clips get watched.
 
@@ -155,12 +157,17 @@ The output video from Magic Hour was 640×640 pixels, which pod2video scales up 
 | What | Cost |
 | --- | --- |
 | Transcribing 25 minutes (AssemblyAI) | ~$0.10 |
-| Picking the moments, run twice (Anthropic) | $0.16 |
+| Picking the moments, run three times (Anthropic) | $0.24 |
 | Two cartoon avatars, one-time (Magic Hour) | 100 credits ($0.12) |
-| Rendering one 29 s clip (Magic Hour) | 695 credits ($0.83) |
-| **Total** | **about $1.20** |
+| Rendering the finished 30 s clip (Magic Hour) | 720 credits ($0.86) |
+| Wasted render with the wrong face (Magic Hour) | 695 credits ($0.83) |
+| **Total** | **about $2.15**, of which $0.83 was my mistake |
 
 Rendering all six clips would have been about 4,200 credits, around $5.
+
+### A bug this exposed
+
+While fixing the speaker map, the moment picker ran again and **renumbered the clips**, so `--pick 1` rendered a different clip from the one I had chosen in the previews. That was a bug in pod2video: the saved moments were tied to the host names. It's fixed now; correcting the speaker map keeps the same clips and numbers.
 
 ## If something goes wrong
 

@@ -231,3 +231,24 @@ def test_chunk_spans_respects_the_job_limit():
     spans = [(0.0, 20.0), (25.0, 40.0), (50.0, 60.0)]
     assert pl.chunk_spans(spans, limit=45, pad=0.25) == [[(0.0, 20.0), (25.0, 40.0)], [(50.0, 60.0)]]
     assert pl.chunk_spans(spans, limit=300, pad=0.25) == [spans]
+
+
+def test_fixing_the_speaker_map_keeps_the_same_clip_numbers(tmp_path, episode, monkeypatch):
+    """A wrong speaker map is the most common mistake; correcting it must not reshuffle the picks."""
+    from pod2video import moments as moment_ops
+    from pod2video.models import Moment
+
+    audio, cache, photos, rendered, png = episode
+    calls = []
+
+    def fake_select(*a, **k):
+        calls.append(k["speaker_names"])
+        return [Moment(start=1, end=12, title="First"), Moment(start=14, end=26, title="Second")]
+
+    monkeypatch.setattr(moment_ops, "select_moments", fake_select)
+    monkeypatch.setattr(pl, "MagicHour", lambda *a, **k: pytest.fail("dry run must not call Magic Hour"))
+    settings = Settings(pod2video_cache_dir=cache, llm_model="claude-opus-5-5", llm_api_key="k", _env_file=None)
+    first = pl.Pipeline(options(tmp_path, photos, segments=[], speaker_map="A=Alice,B=Bob", dry_run=True), settings, Console(quiet=True)).run()
+    second = pl.Pipeline(options(tmp_path, photos, segments=[], speaker_map="B=Alice,A=Bob", dry_run=True), settings, Console(quiet=True)).run()
+    assert len(calls) == 1  # moments reused from moments.json, not re-picked
+    assert [c["title"] for c in first["clips"]] == [c["title"] for c in second["clips"]]

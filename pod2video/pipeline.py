@@ -360,7 +360,8 @@ class Pipeline:
             "min_len": opts.min_len,
             "max_len": opts.max_len,
             "model": self.settings.llm_model,
-            "speakers": self._speaker_names(),
+            # Host names are deliberately not part of the key: fixing a wrong speaker map must
+            # keep the same moments and clip numbers, or `--pick` would render the wrong clip.
             "transcript": transcript.audio_sha256 if transcript else None,
         }
         if cache_path.exists() and not opts.reselect:
