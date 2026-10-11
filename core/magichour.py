@@ -32,7 +32,8 @@ TERMINAL_STATUSES = {"complete", "error", "canceled"}
 
 # Talking Photo limits and pricing (docs.magichour.ai/api-reference/models, checked 2026-10).
 TALKING_PHOTO_MAX_SECONDS = {"realistic": 300.0, "prompted": 45.0}
-TALKING_PHOTO_CREDITS_PER_SECOND = {"realistic": 48, "prompted": 20}
+# Docs say 20/s for prompted, but a real job (2026-10) billed 1 credit per frame at 24 fps = 24/s.
+TALKING_PHOTO_CREDITS_PER_SECOND = {"realistic": 48, "prompted": 24}
 
 _ASSET_TYPES = {
     "video": {"mp4", "m4v", "mov", "webm"},

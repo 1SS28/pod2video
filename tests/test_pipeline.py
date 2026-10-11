@@ -221,7 +221,7 @@ def test_dry_run_estimates_and_compares_plans_without_rendering(tmp_path, episod
     report = pl.Pipeline(options(tmp_path, photos, dry_run=True), settings, Console(quiet=True)).run()
     assert not any(m == "POST" for m, _, _ in api.log)  # only the read-only account lookup
     [clip] = report["clips"]
-    expected = sum(math.ceil(r["seconds"]) * 20 for r in clip["renders"] if r["paid"])
+    expected = sum(math.ceil(r["seconds"]) * 24 for r in clip["renders"] if r["paid"])
     assert report["estimate"]["credits"] == clip["credits_estimate"] == expected
     assert clip["status"] == "planned"
     assert report["cost_by_plan"]["pack"] == pytest.approx(expected / 400, abs=1e-4)

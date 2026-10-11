@@ -103,7 +103,7 @@ def run(
     logo: Optional[str] = typer.Option(None, "--logo", help='Logo image path, or "feed" to use the podcast artwork.'),
     avatar: AvatarChoice = typer.Option(AvatarChoice.photo, "--avatar", help="photo: animate the photos as given. cartoon: make a cartoon of each photo once (~50 credits per host) and reuse it."),
     avatar_prompt: Optional[str] = typer.Option(None, "--avatar-prompt", help="Custom prompt for cartoon avatars."),
-    generation_mode: ModeChoice = typer.Option(ModeChoice.prompted, "--generation-mode", help="Talking Photo mode: prompted (20 credits/s, up to 45 s per job) or realistic (48 credits/s, best likeness)."),
+    generation_mode: ModeChoice = typer.Option(ModeChoice.prompted, "--generation-mode", help="Talking Photo mode: prompted (~24 credits/s, up to 45 s per job) or realistic (48 credits/s, best likeness)."),
     max_resolution: Optional[int] = typer.Option(None, "--max-resolution", help="Cap the Talking Photo output's longer edge (does not change credits)."),
     plan: Optional[str] = typer.Option(None, "--plan", help="Your Magic Hour plan for cost reporting, e.g. creator-annual (default: read from your account; see `pod2video plans`)."),
     per_month: float = typer.Option(4, "--per-month", help="Episodes you make per month, for the plan recommendation."),

@@ -17,7 +17,7 @@ min_len: 15 # seconds; short clips hold attention and cost less
 max_len: 30
 layout: auto # speaker-cut for 2+ hosts (cheapest), split, or single
 style: bold # captions: bold, clean, minimal
-generation_mode: prompted # prompted (20 credits/s) or realistic (48 credits/s, best likeness)
+generation_mode: prompted # prompted (~24 credits/s) or realistic (48 credits/s, best likeness)
 
 plan: auto # read from your Magic Hour account; or e.g. creator-annual (see `pod2video plans`)
 max_credits_per_run: 5000 # a render that would cost more is refused

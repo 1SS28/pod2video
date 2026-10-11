@@ -133,4 +133,4 @@ def test_api_errors_surface_code_and_message(files):
 
 def test_credit_estimate():
     assert estimate_talking_photo_credits(30.2) == 31 * 48
-    assert estimate_talking_photo_credits(30.0, "prompted") == 600
+    assert estimate_talking_photo_credits(30.0, "prompted") == 720  # 1 credit per frame at 24 fps

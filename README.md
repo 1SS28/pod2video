@@ -2,13 +2,14 @@
 
 Turn an audio-only podcast into short vertical video clips. The host who is talking appears on screen and lip-syncs to their real voice using [Magic Hour](https://magichour.ai) Talking Photo, with word-timed captions and your show's branding on top.
 
-![Before: the episode's audio. After: a captioned 9:16 clip that cuts between the hosts as they talk.](docs/demo.gif)
-<!-- TODO: after your first real run: python examples/make_demo_gif.py out/<episode>/clip_01_*.mp4 docs/demo.gif -->
+![Before: the episode's audio. After: a captioned 9:16 clip of a cartoon avatar lip-syncing the speaker's real voice.](docs/demo.gif)
+
+*Real output: a 29 s clip from [Open Minds … from Creative Commons](https://creativecommons.org/tag/podcast/) (CC BY 4.0, used with the hosts' permission). The face is a cartoon avatar generated from a text description. 695 Magic Hour credits ($0.83). The full walkthrough, with what went wrong, is in [demo.md](demo.md).*
 
 - **Input:** an RSS feed (or a local audio file), plus one photo per host, or a one-line description for a cartoon avatar.
 - **Output:** vertical 9:16 clips (15–30 s) of the best moments in the episode.
 - **The audio is never altered.** Only the images are animated. Each clip plays the original mixed audio.
-- **Cheap by design:** about **$0.50–$0.75 per clip** on Magic Hour's Creator plan (see [Cost](#cost)).
+- **Cheap by design:** about **$0.60–$0.90 per clip** on Magic Hour's Creator plan (see [Cost](#cost)).
 - **Bring your own keys:** Magic Hour, a transcription provider (AssemblyAI or Deepgram), and an LLM (Anthropic or OpenAI).
 - **A worked example of the Magic Hour API:** see [How it uses the Magic Hour API](#how-it-uses-the-magic-hour-api) for the endpoints, their limits and costs, and the patterns that keep spend down.
 
@@ -81,19 +82,29 @@ Run `pod2video avatars --host ...` to make avatars up front so that `--preview` 
 
 ## Cost
 
-Talking Photo is billed per second of output: **20 credits/s in `prompted` mode** (the default, up to 45 s per job) or **48 credits/s in `realistic` mode** (`--generation-mode realistic`, best likeness). These rates are from Magic Hour's [model pricing](https://docs.magichour.ai/api-reference/models). Clips default to 15–30 s, because short clips hold attention better and cost proportionally less. Per typical 23 s two-host clip:
+Talking Photo is billed per second of output: **about 24 credits/s in `prompted` mode** (the default, up to 45 s per job; the docs say 20, a real job billed 1 credit per frame at 24 fps) or **48 credits/s in `realistic` mode** (`--generation-mode realistic`, best likeness). These rates are from Magic Hour's [model pricing](https://docs.magichour.ai/api-reference/models). Clips default to 15–30 s, because short clips hold attention better and cost proportionally less. Per typical 23 s two-host clip:
 
 | Setup | Credits | Creator monthly ($19) | Creator annual ($12/mo) |
 | --- | --- | --- | --- |
-| speaker-cut, prompted (default) | ~470 | $0.75 | $0.47 |
+| speaker-cut, prompted (default) | ~570 | $0.90 | $0.57 |
 | speaker-cut, realistic | ~1,140 | $1.80 | $1.14 |
 | split, realistic (every host, whole clip) | 2,210 | $3.50 | $2.21 |
 
-**Which plan?** `pod2video plans` compares every option for your volume. A weekly show with 3 clips per episode (~6,200 credits a month) fits **Creator**: $19/mo, or $12/mo billed annually. Pro and Business add credits and concurrency, but not Talking Photo quality, which is capped at 720p on every paid plan. Credit packs work without a plan but render at the lowest resolution. Subscription credits never expire. pod2video reads your plan from your API key (`MAGIC_HOUR_PLAN=auto`) to price every report. Override it with `--plan`.
+**Which plan?** `pod2video plans` compares every option for your volume. A weekly show with 3 clips per episode (~7,400 credits a month) fits **Creator**: $19/mo, or $12/mo billed annually. Pro and Business add credits and concurrency, but not Talking Photo quality, which is capped at 720p on every paid plan. Credit packs work without a plan but render at the lowest resolution. Subscription credits never expire. pod2video reads your plan from your API key (`MAGIC_HOUR_PLAN=auto`) to price every report. Override it with `--plan`.
 
 Other costs per episode-hour: transcription about $0.23 (AssemblyAI) or $0.26 (Deepgram), and moment selection about $0.10–$0.30 with Claude Opus.
 
-**Real run:** <!-- TODO: paste the summary from a real run's report.json: episode, clips, credits, $, LLM $, transcription $, time per stage. -->
+**Real run (2026-10-11):** one 28.9 s clip from a 25-minute episode, cartoon avatar, `prompted` mode, speaker-cut.
+
+| | |
+| --- | --- |
+| Magic Hour, Talking Photo (1 job) | 695 credits = $0.83 at the usage-based Creator rate ($0.70 on Creator annual) |
+| Magic Hour, 2 cartoon avatars (one-time) | 100 credits = $0.12 |
+| Moment selection, Claude Opus 5.5, run twice | $0.16 |
+| Transcription, AssemblyAI, 25 min | ~$0.10 |
+| Time | transcribe ~1 min, select moments 20 s, Talking Photo 102 s, compose 6 s |
+
+Details and the terminal output are in [demo.md](demo.md).
 
 Every Magic Hour job's `credits_charged` is logged to `out/<episode>/ledger.jsonl` as it happens, and the final amount is read back once the job finishes. Failed jobs are refunded by Magic Hour, and the ledger records them anyway. `--max-resolution` lowers output size but not credits.
 
@@ -107,7 +118,7 @@ All the Magic Hour calls are in [core/magichour.py](core/magichour.py) (plain RE
 | Upload inputs | `POST /v1/files/upload-urls`, then `PUT` to the returned URL | Ask for one URL per file (`type` + `extension`), `PUT` the bytes, and pass the returned `file_path` to jobs. Don't send your API key to the presigned URL. Upload each file once and reuse its `file_path`. |
 | Check faces | `POST /v1/face-detection`, poll `GET /v1/face-detection/{id}` | Free at the time of writing. A cheap preflight that stops a run before any credits go on an image with no detectable face. |
 | Make avatars | `POST /v1/ai-image-editor` (photo → cartoon) or `POST /v1/ai-image-generator` (description → cartoon), poll `GET /v1/image-projects/{id}` | A flat cost per image (50 credits for `nano-banana` at 1k). Cache the result: a host's avatar never changes. |
-| Animate | `POST /v1/ai-talking-photo` | `start_seconds` and `end_seconds` are required and select part of the audio. Billed per second of output: 20 credits/s in `prompted` mode (up to 45 s per job) or 48 credits/s in `realistic` mode (up to 300 s). `max_resolution` caps the output (720p at most) but doesn't change credits. |
+| Animate | `POST /v1/ai-talking-photo` | `start_seconds` and `end_seconds` are required and select part of the audio. Billed per second of output: about 24 credits/s in `prompted` mode (1 credit per 24 fps frame; the docs say 20) (up to 45 s per job) or 48 credits/s in `realistic` mode (up to 300 s). `max_resolution` caps the output (720p at most) but doesn't change credits. |
 | Wait and download | `GET /v1/video-projects/{id}` | Poll until `complete`, `error` or `canceled`, then download `downloads[0].url`. The `credits_charged` returned on create is an estimate; read the final value here. Failed jobs are refunded, and this field is updated to show it. |
 
 **Patterns worth copying:**
