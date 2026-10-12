@@ -29,7 +29,8 @@ concurrency:
 
 jobs:
   preview:
-    if: github.event_name != 'issue_comment'
+    # Runs in your copy, never in the template repository itself.
+    if: github.event_name != 'issue_comment' && github.repository != '1SS28/pod2video-template'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:

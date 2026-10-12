@@ -55,6 +55,23 @@ def test_show_config_resolves_paths_and_rejects_typos(tmp_path):
         showconfig.load(tmp_path / "bad.yml")
 
 
+def test_check_setup_explains_what_is_missing(tmp_path):
+    from pod2video.config import Settings
+
+    (tmp_path / "pod2video.yml").write_text(f"feed: {actions.EXAMPLE_FEED}\nhosts:\n  - name: Alice\n    photo: hosts/alice.jpg\n")
+    cfg = showconfig.load(tmp_path / "pod2video.yml")
+    with pytest.raises(actions.ActionError) as err:
+        actions.check_setup(cfg, Settings(_env_file=None, magic_hour_api_key="x", transcription_api_key="", llm_api_key="y"))
+    message = str(err.value)
+    assert "example feed" in message and "TRANSCRIPTION_API_KEY" in message and "alice.jpg" in message
+    assert "MAGIC_HOUR_API_KEY" not in message
+
+    (tmp_path / "hosts").mkdir()
+    (tmp_path / "hosts" / "alice.jpg").write_bytes(b"x")
+    (tmp_path / "pod2video.yml").write_text(f"feed: {FEED}\nhosts:\n  - name: Alice\n    photo: hosts/alice.jpg\n")
+    actions.check_setup(showconfig.load(tmp_path / "pod2video.yml"), Settings(_env_file=None, magic_hour_api_key="x", transcription_api_key="y", llm_api_key="z"))
+
+
 # -- fake GitHub ------------------------------------------------------------------------
 
 

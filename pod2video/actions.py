@@ -29,6 +29,7 @@ from pod2video import speakers as speaker_ops
 from pod2video.github import GitHub
 from pod2video.models import Transcript
 from pod2video.pipeline import Pipeline, RunOptions
+from pod2video.config import Settings
 from pod2video.showconfig import ShowConfig
 from pod2video.transcribe import file_sha256
 
@@ -39,6 +40,31 @@ _META = re.compile(r"<!-- pod2video-meta:([A-Za-z0-9+/=]+) -->")
 
 class ActionError(RuntimeError):
     pass
+
+
+EXAMPLE_FEED = "https://example.com/podcast/feed.xml"
+
+
+def check_setup(cfg: ShowConfig, settings: Settings) -> None:
+    """Explain, in plain words, what is still missing before a run can work."""
+    problems = []
+    if cfg.feed.strip() in ("", EXAMPLE_FEED):
+        problems.append("pod2video.yml still has the example feed address. Put your podcast's RSS feed on the `feed:` line.")
+    missing = [name for name, value in (
+        ("MAGIC_HOUR_API_KEY", settings.magic_hour_api_key),
+        ("TRANSCRIPTION_API_KEY", settings.transcription_api_key),
+        ("LLM_API_KEY", settings.llm_api_key),
+    ) if not value]
+    if missing:
+        problems.append(
+            "These repository secrets are not set: " + ", ".join(missing)
+            + ". Add them under Settings → Secrets and variables → Actions → New repository secret."
+        )
+    for host in cfg.hosts:
+        if host.photo and not cfg.resolve(host.photo).exists():
+            problems.append(f"{host.name}'s photo is listed as `{host.photo}` but that file is not in the repository. Upload it to the hosts folder.")
+    if problems:
+        raise ActionError("Setup is not finished yet.\n\n" + "\n".join(f"- {p}" for p in problems) + "\n\nThe README in this repository has the steps.")
 
 
 # -- small pure helpers (tested directly) --------------------------------------------------
@@ -221,6 +247,7 @@ def preview(cfg: ShowConfig, gh: GitHub, *, episode: str = "latest", force: bool
     """Returns the issue number, or None when the episode was already handled."""
     console = console or Console()
     settings = cfg.settings()
+    check_setup(cfg, settings)
     episodes = feed_ops.load_feed(cfg.feed)
     ep = feed_ops.pick_episode(episodes, episode)
     marker = episode_marker(cfg.feed, ep.guid)
@@ -294,6 +321,7 @@ def render(cfg: ShowConfig, gh: GitHub, event: dict[str, Any], *, console: Conso
         picks, mapping = parse_render_command(comment["body"])
         meta = decode_meta(issue["body"])
         settings = cfg.settings()
+        check_setup(cfg, settings)
         release = gh.get_release(meta["release_id"])
         work = OUT / ".render-inputs"
         moments = gh.download_asset(release, "moments.json", work / "moments.json")
