@@ -6,52 +6,98 @@ Turn an audio-only podcast into short vertical video clips. The host who is talk
 
 *Real output: a 29 s clip from [Open Minds … from Creative Commons](https://creativecommons.org/tag/podcast/) (CC BY 4.0, used with the hosts' permission). The face is a cartoon avatar generated from a text description. 720 Magic Hour credits ($0.86). The full walkthrough, with what went wrong, is in [demo.md](demo.md).*
 
-- **Input:** an RSS feed (or a local audio file), plus one photo per host, or a one-line description for a cartoon avatar.
-- **Output:** vertical 9:16 clips (15–30 s) of the best moments in the episode.
-- **The audio is never altered.** Only the images are animated. Each clip plays the original mixed audio.
-- **Cheap by design:** about **$0.60–$0.90 per clip** on Magic Hour's Creator plan (see [Cost](#cost)).
-- **Bring your own keys:** Magic Hour, a transcription provider (AssemblyAI or Deepgram), and an LLM (Anthropic or OpenAI).
-- **A worked example of the Magic Hour API:** see [How it uses the Magic Hour API](#how-it-uses-the-magic-hour-api) for the endpoints, their limits and costs, and the patterns that keep spend down.
+You give it a podcast feed and a photo of each host (or a one-line description, and it draws a cartoon). It picks the best 15–30 second moments, shows you free previews, and renders only the ones you choose. A finished clip costs about **$0.60–$0.90** in Magic Hour credits. The audio is never changed; only the picture is animated.
 
-## Quickstart
+There are three ways to use it:
 
-```bash
-pip install -e .              # Python 3.11+; add [openai] to use OpenAI models
-cp .env.example .env          # then fill in your three API keys
-pod2video run --feed https://example.com/feed.xml --host "Alice=alice.jpg" --host "Bob=bob.jpg"
-```
+| | Good for | Setup |
+| --- | --- | --- |
+| **On GitHub, no install** | Podcasters. Every new episode shows up as previews; you reply with the clips you want. | [10 minutes, no terminal](template/README.md) |
+| **On your computer** | Trying it on one episode, or scripting it. | [Setting up from nothing](#setting-up-from-nothing) below |
+| **As code** | Developers learning the Magic Hour API. | [How it uses the Magic Hour API](#how-it-uses-the-magic-hour-api) |
 
-You also need **ffmpeg with libass** for captions. On macOS, the regular `brew install ffmpeg` lacks libass, so use `brew install ffmpeg-full` (pod2video finds it automatically). Run `pod2video doctor` to check ffmpeg, your keys, your plan and your credit balance.
+It was built by someone who works with Magic Hour, as a worked example of the API. All the cost numbers come from real runs, and [demo.md](demo.md) records one from start to finish, mistakes included.
 
-## Run it on GitHub: no install
+## Setting up from nothing
 
-The easiest way for a show to use pod2video is a private repository made from the [template](template/). GitHub Actions checks the feed every day. Each new episode gets an issue with free previews and the cost. You reply `/render 1 4`, and the clips are attached to the issue's draft release. Your keys stay in your repository's secrets, and there's no server to run. See [template/README.md](template/README.md) for the 10-minute setup.
+This is for a Mac and assumes you have never used the terminal. On Linux, skip the Homebrew line and install `pipx` and `ffmpeg` with your package manager. On Windows, use the GitHub route above instead.
 
-```
-new episode in the feed ──► Actions: transcribe, pick moments, render free previews
-                            └─► issue: candidates + preview links + cost + "who is who?"
-you comment "/render 1 4" ──► Actions: render those clips with Magic Hour (budget-capped)
-                            └─► reply: download links + exact credits and $
-```
+**1. Open the terminal.** Press ⌘-Space, type `Terminal`, press Enter. Everything below is typed into that window.
 
-## The workflow: preview free, pay only for the clips you post
+**2. Install the two tools pod2video needs.** Paste each line and press Enter. The first installs Homebrew (a tool that installs other tools) and will ask for your Mac password; the second installs Python and ffmpeg. Both take a few minutes.
 
 ```bash
-# 1. Find the 6 best moments and render free previews (still photos, real captions and layout).
-pod2video run --feed <rss> --host "Alice=alice.jpg" --host "Bob=bob.jpg" --clips 3 --preview
-
-# 2. Watch them in out/<episode>/, then render only the ones you'd post.
-pod2video run --feed <rss> --host "Alice=alice.jpg" --host "Bob=bob.jpg" --pick 1,4,5
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-Step 2 reuses the transcript and the moments from step 1, so you only pay for Talking Photo. Without `--pick`, pod2video shows the candidates and asks which ones to render (defaulting to the top `--clips`). `--dry-run` shows the same list with the cost on every Magic Hour plan, and renders nothing.
+```bash
+brew install pipx ffmpeg-full
+```
+
+(`ffmpeg-full` and not plain `ffmpeg`: the plain one can't draw the captions.)
+
+**3. Download pod2video and install it.**
+
+```bash
+git clone https://github.com/1SS28/pod2video.git && cd pod2video && pipx install . && pipx ensurepath
+```
+
+Then close the terminal window and open a new one, so it knows about the `pod2video` command. Type `cd pod2video` to get back into the folder.
+
+**4. Get your three keys.** Each site gives you a long string of letters; keep the tabs open.
+- **Magic Hour** does the animation: [magichour.ai/developer](https://magichour.ai/developer?tab=api-keys) → Create new API Key. Your account needs credits; a clip costs about 600–700.
+- **AssemblyAI** turns speech into text: [assemblyai.com](https://www.assemblyai.com). Free to sign up, $50 of credit included, which covers hundreds of episodes.
+- **Anthropic** picks the best moments: [console.anthropic.com](https://console.anthropic.com) → API Keys → Create Key. Add $5 of credit; an episode uses about 10 cents.
+
+**5. Put the keys in the settings file.**
+
+```bash
+cp .env.example .env && open -e .env
+```
+
+A text editor opens. Paste each key after the matching `=` sign (`MAGIC_HOUR_API_KEY=`, `TRANSCRIPTION_API_KEY=`, `LLM_API_KEY=`), no spaces, then save and close it.
+
+**6. Check it worked.**
+
+```bash
+pod2video doctor
+```
+
+You want four ticks. A ✗ tells you which key is missing or wrong.
+
+**7. Make clips.** Swap in your feed address and your hosts' photos (drag a photo into the terminal window to paste its path):
+
+```bash
+pod2video run --feed https://example.com/feed.xml --host "Alice=alice.jpg" --host "Bob=bob.jpg" --preview
+```
+
+This costs no Magic Hour credits. It asks which voice belongs to which host (read the sample lines; don't guess), then writes six preview videos to the `out` folder. Watch them, then render the ones you want:
+
+```bash
+pod2video run --feed https://example.com/feed.xml --host "Alice=alice.jpg" --host "Bob=bob.jpg" --pick 1,4
+```
+
+It shows the cost and asks before spending. Two minutes later the finished clips are in the same folder. No photo? Write `--host "Bob=desc:tall, short beard, green beanie"` and it draws a cartoon of Bob instead (about 50 credits, once).
+
+[demo.md](demo.md) walks through a real run of exactly these steps.
+
+## On GitHub, with no install
+
+Make a private repository from the [template](template/), add your three keys as secrets, and GitHub checks your feed every day. Each new episode gets an issue with free previews and the cost; you reply `/render 1 4` and the clips are attached. There's no server and nothing on your computer. The [template README](template/README.md) says exactly where to click.
+
+```
+new episode in the feed ──► transcribe, pick moments, free previews
+                            └─► an issue: the candidates, preview links, cost, "who is who?"
+you comment "/render 1 4" ──► those clips rendered with Magic Hour (budget-capped)
+                            └─► a reply with download links and the exact bill
+```
 
 ## How it works
 
 1. **Fetch:** download the episode (cached), or use `--audio`.
 2. **Transcribe:** word timestamps and speaker labels from AssemblyAI or Deepgram, cached by audio hash.
 3. **Map speakers:** shows each speaker's talk time and a sample line, and asks which one is Alice and which is Bob. The answer is saved per feed. Skip the prompt with `--speaker-map "A=Alice,B=Bob"`.
-4. **Select moments:** the LLM reads the transcript as numbered sentences and ranks the best self-contained moments: a hook, a complete thought, something quotable. Cuts land on sentence boundaries. The result is saved as `moments.json`: edit it and rerun with `--moments`.
+4. **Select moments:** Claude (or GPT) reads the transcript as numbered sentences and ranks the best self-contained moments: a hook, a complete thought, something quotable. Cuts land on sentence boundaries. The result is saved as `moments.json`: edit it and rerun with `--moments`.
 5. **Plan shots:** the camera cuts to whoever is talking, holds through short interjections, and never cuts faster than every 1.5 s.
 6. **Animate:** only the host on screen is animated. Each host's on-screen moments in a clip are joined into one audio track (with short pauses between them), so a clip needs one Talking Photo job per host. A clip bills about its own length (~3% over) however many hosts there are. Every image passes Magic Hour's free face detection first, and finished renders are reused on reruns.
 7. **Compose:** ffmpeg cuts each render back into its shots and builds the 1080×1920 frame:
@@ -146,8 +192,10 @@ All the Magic Hour calls are in [core/magichour.py](core/magichour.py) (plain RE
 
 ## Try it with no API keys (macOS)
 
+Makes a fake 90-second two-voice episode with the Mac's built-in voices, then previews it, so you can see the layout without any accounts.
+
 ```bash
-python examples/synthetic_demo.py     # synthesises a 90 s two-voice episode with `say`
+python3 examples/synthetic_demo.py
 pod2video run --audio examples/demo/demo.mp3 --podcast-name "Side Project Radio" \
   --host "Sam=examples/demo/sam.png" --host "Dan=examples/demo/dan.png" \
   --speaker-map "A=Sam,B=Dan" --moments examples/demo/moments.json --preview
@@ -180,10 +228,6 @@ The engine lives at `1SS28/pod2video` and the template at `1SS28/pod2video-templ
 
 1. Push this folder to `1SS28/pod2video`, then tag the release: `git tag v1.0.0 && git tag v1 && git push origin main --tags`. For each compatible release after that, move `v1` forward: `git tag -f v1 && git push -f origin v1`.
 2. Publish the contents of `template/` as `1SS28/pod2video-template` (a snapshot of the folder as its own repository), and turn on **Settings → Template repository**.
-
-## Disclosure
-
-Built by someone who works with Magic Hour.
 
 ## License
 

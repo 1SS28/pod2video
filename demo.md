@@ -10,18 +10,7 @@ This is a record of running pod2video on a real podcast episode, written so that
 
 ## What you need before starting
 
-1. A Mac or Linux computer with a terminal (on a Mac: the **Terminal** app).
-2. pod2video installed, following the README's Quickstart.
-3. Three API keys pasted into the `.env` file:
-   - **Magic Hour** (does the animation): [magichour.ai/developer](https://magichour.ai/developer?tab=api-keys). You need credits in the account. A clip costs about 600–700.
-   - **AssemblyAI** (turns speech into text): [assemblyai.com](https://www.assemblyai.com). New accounts get $50 free.
-   - **Anthropic** (picks the best moments): [console.anthropic.com](https://console.anthropic.com). Add $5 of credit; an episode uses about 10 cents.
-
-Every command below is typed into the terminal from inside the `pod2video` folder. If you copied the project to your Documents folder, first type:
-
-```bash
-cd ~/Documents/pod2video
-```
+Steps 1–6 of [Setting up from nothing](README.md#setting-up-from-nothing) in the README: the terminal open, pod2video installed, and your three keys in the `.env` file. Every command below is typed into the terminal window, inside the `pod2video` folder (if you just installed it, you're already there; otherwise type `cd pod2video` first).
 
 ## Step 1: check that everything is set up
 

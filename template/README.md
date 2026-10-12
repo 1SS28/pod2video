@@ -8,16 +8,18 @@ This repository turns each new episode of your podcast into short vertical clips
 2. You reply on the issue with the clips you want: `/render 1 4`.
 3. A few minutes later, the finished clips are attached to the issue's draft release, along with the exact cost.
 
-## Setup (about 10 minutes)
+## Setup (about 10 minutes, nothing to install)
 
-1. Click **Use this template → Create a new repository** and make it **Private**. A private repo keeps your hosts' photos and your clips to yourself; a fork of a public repo can't be private.
-2. Go to **Settings → Secrets and variables → Actions → New repository secret** and add:
+You need a free [GitHub account](https://github.com/signup). A "repository" is just a folder GitHub keeps for you; this one holds your settings, your hosts' photos, and the finished clips.
+
+1. At the top of this page, click the green **Use this template** button, then **Create a new repository**. Give it any name, choose **Private**, and click **Create repository**. (Private keeps your photos and clips to yourself. Don't use the Fork button: forks of a public repository can't be private.)
+2. Give it your keys. In your new repository, click **Settings** (top row of tabs), then in the left sidebar **Secrets and variables → Actions**, then the green **New repository secret**. Add these three, one at a time, with the name typed exactly and the key pasted into the big box:
    - `MAGIC_HOUR_API_KEY`, from [magichour.ai/developer](https://magichour.ai/developer?tab=api-keys)
    - `TRANSCRIPTION_API_KEY`, from AssemblyAI (or Deepgram; set `transcription_provider` to match)
    - `LLM_API_KEY`, from Anthropic (or OpenAI; set `llm_model` to match)
-3. Edit `pod2video.yml`: your feed URL, your hosts, and a budget.
-4. Add a photo of each host to `hosts/` (with their consent), or give a host a `description` instead to get a cartoon avatar.
-5. Go to **Actions → pod2video → Run workflow** to preview your latest episode now instead of waiting for tomorrow.
+3. Open the file `pod2video.yml` (click it in the file list, then the pencil icon to edit). Put in your podcast's feed address, your hosts' names, and the lines for their photos. Click **Commit changes** to save.
+4. Add a photo of each host: open the `hosts` folder, click **Add file → Upload files**, drop the photos in, and commit. Use the same file names you wrote in `pod2video.yml`. No photo for someone? Give them a `description` line instead and a cartoon is drawn.
+5. Click the **Actions** tab, choose **pod2video** on the left, then **Run workflow** → **Run workflow**. A few minutes later a new item appears under **Issues** with your previews. From now on this happens by itself every morning for each new episode.
 
 ## Day to day
 
