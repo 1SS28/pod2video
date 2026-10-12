@@ -222,12 +222,9 @@ examples/        synthetic demo, demo-GIF maker, moments.json format
 tests/           pytest; Magic Hour, GitHub, transcription and LLM APIs are mocked
 ```
 
-## Publishing (maintainers)
+## Releases
 
-The engine lives at `1SS28/pod2video` and the template at `1SS28/pod2video-template`.
-
-1. Push this folder to `1SS28/pod2video`, then tag the release: `git tag v1.0.0 && git tag v1 && git push origin main --tags`. For each compatible release after that, move `v1` forward: `git tag -f v1 && git push -f origin v1`.
-2. Publish the contents of `template/` as `1SS28/pod2video-template` (a snapshot of the folder as its own repository), and turn on **Settings → Template repository**.
+The template pins `1SS28/pod2video@v1`. Compatible changes move that tag forward (`git tag -f v1 && git push -f origin v1`); a breaking change gets a `v2` and a new template line.
 
 ## License
 
